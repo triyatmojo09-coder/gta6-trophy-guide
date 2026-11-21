@@ -1,47 +1,154 @@
-// Leonida Legend — GTA VI trophy guide & tracker (gta6-trophy-guide-01 entry).
-// The guide itself is this directory's app/ folder: plain static files (ES modules, CSS, no build step)
-// that open at app/index.html and load nothing over the network. Its trophy list, guides, roadmap and
-// sources are app/data/trophies.json. This program hands the entry in: before copying anything it
-// validates the trophy data (all 55 official trophies named, every guide non-blank, the roadmap
-// covering the whole list), then it copies app/ and screenshots/ to /output and writes
-// /output/dossier.json with the vendored make.fun library, byte for byte as the scorer rebuilds it.
-// Leave vendor/makefun-frontend.ts exactly as the kit ships it.
+// Leonida Legend — hand-in program for the GTA 6 trophy guide bounty.
 //
-// Serve the guide locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// What it does, in order:
+//   1. Validates app/data/trophies.json against the shape this entry promises:
+//      all 55 official trophies with names, descriptions and grades, an original
+//      guide of 40-80 words for each, the 28 hidden trophies, the 4 missable
+//      trophies with their reasons, the counted trophies with their targets,
+//      and a six-phase roadmap that covers every trophy exactly once.
+//   2. Copies app/ and screenshots/ from this repository into the output
+//      directory (MAKEFUN_OUTPUT_DIR, or /output when the variable is unset),
+//      in sorted path order, so two runs write byte-identical trees.
+//   3. Writes dossier.json into the output directory with buildDossier from
+//      vendor/makefun-frontend.ts, capped the way this competition's gate caps
+//      it, and refuses if the dossier would pass 1.5 MiB.
+//
+// Node standard library only; no network; deterministic.
 
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const repoRoot = dirname(fileURLToPath(import.meta.url));
+const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-// Authored guard: a guide that names fewer than the 55 official trophies, or leaves one guideless,
-// is refused by the gate — catch it here, where the message can still say which trophy is missing.
-const data = JSON.parse(readFileSync(join(here, 'app', 'data', 'trophies.json'), 'utf8'));
-const trophies: { name?: unknown; guide?: unknown }[] = Array.isArray(data) ? data : data.trophies;
-if (!Array.isArray(trophies) || trophies.length !== 55) {
-  throw new Error(`trophies.json must hold the 55 official trophies; found ${Array.isArray(trophies) ? trophies.length : 'none'}`);
+const DOSSIER_MAX_BYTES = 1_572_864; // 1.5 MiB, this competition's dossier cap.
+const TEXT_MAX_BYTES = 163_840; // The dossier text cap the gate scores with.
+
+const EXPECTED = {
+  trophies: 55,
+  grades: { platinum: 1, gold: 2, silver: 6, bronze: 46 },
+  hidden: 28,
+  missable: ['Catch Me If You Can', 'Personal Best', 'Actions Speak Louder', 'Bad Luck, I Guess'],
+  counted: 19,
+  roadmapPhases: 6,
+  guideWords: { min: 40, max: 80 },
+};
+
+function fail(message: string): never {
+  throw new Error('leonida-legend: ' + message);
 }
-const unguided = trophies.filter((t) => typeof t.name !== 'string' || typeof t.guide !== 'string' || !t.guide.trim());
-if (unguided.length > 0) throw new Error(`trophies.json: ${unguided.length} trophies are missing a name or a guide`);
-const roadmapIds = new Set((data.roadmap ?? []).flatMap((phase: { trophyIds?: number[] }) => phase.trophyIds ?? []));
-if (roadmapIds.size !== 55) throw new Error(`the roadmap must cover all 55 trophies; it covers ${roadmapIds.size}`);
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files and directories in app/ or
-// 48 MiB of app files: app/ counts beside /output's own 1000-entry cap, its screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
-);
+function validateData(): void {
+  const dataPath = join(repoRoot, 'app', 'data', 'trophies.json');
+  const data = JSON.parse(readFileSync(dataPath, 'utf8'));
+  const trophies = data.trophies;
+  if (!Array.isArray(trophies)) fail('trophies.json holds no "trophies" array');
+  if (trophies.length !== EXPECTED.trophies) fail(`expected ${EXPECTED.trophies} trophies, found ${trophies.length}`);
 
-console.log(`leonida legend: handed in ${trophies.length} trophies, roadmap phases ${(data.roadmap ?? []).length}, dossier written to ${join(out, 'dossier.json')}`);
+  const ids = new Set<number>();
+  const gradeCounts: Record<string, number> = {};
+  let hidden = 0;
+  let counted = 0;
+  const missableNames: string[] = [];
+
+  for (const trophy of trophies) {
+    const label = `trophy ${trophy.id} (${trophy.name ?? '?'})`;
+    if (!Number.isInteger(trophy.id) || trophy.id < 1 || trophy.id > 55) fail(`${label}: id out of range`);
+    if (ids.has(trophy.id)) fail(`${label}: duplicate id`);
+    ids.add(trophy.id);
+    if (typeof trophy.name !== 'string' || trophy.name.trim() === '') fail(`${label}: blank name`);
+    if (typeof trophy.description !== 'string' || trophy.description.trim() === '') fail(`${label}: blank description`);
+    if (!(trophy.grade in EXPECTED.grades)) fail(`${label}: unknown grade ${trophy.grade}`);
+    gradeCounts[trophy.grade] = (gradeCounts[trophy.grade] ?? 0) + 1;
+    if (typeof trophy.guide !== 'string' || trophy.guide.trim() === '') fail(`${label}: blank guide`);
+    const words = wordCount(trophy.guide);
+    if (words < EXPECTED.guideWords.min || words > EXPECTED.guideWords.max) {
+      fail(`${label}: guide is ${words} words, outside ${EXPECTED.guideWords.min}-${EXPECTED.guideWords.max}`);
+    }
+    if (typeof trophy.rarity !== 'number' || trophy.rarity < 0 || trophy.rarity > 100) fail(`${label}: bad rarity`);
+    if (typeof trophy.rarityBand !== 'string' || trophy.rarityBand === '') fail(`${label}: no rarity band`);
+    if (!Array.isArray(trophy.sources) || trophy.sources.length === 0) fail(`${label}: cites no source`);
+    if (trophy.hidden === true) hidden += 1;
+    if (trophy.count !== undefined) {
+      counted += 1;
+      if (!Number.isInteger(trophy.count.target) || trophy.count.target <= 0) fail(`${label}: bad count target`);
+      if (!Number.isInteger(trophy.count.step) || trophy.count.step <= 0) fail(`${label}: bad count step`);
+    }
+    if (trophy.missable === true) {
+      missableNames.push(trophy.name);
+      if (typeof trophy.missableReason !== 'string' || trophy.missableReason.trim() === '') {
+        fail(`${label}: missable without a reason`);
+      }
+    }
+  }
+
+  for (const [grade, total] of Object.entries(EXPECTED.grades)) {
+    if (gradeCounts[grade] !== total) fail(`expected ${total} ${grade} trophies, found ${gradeCounts[grade] ?? 0}`);
+  }
+  if (hidden !== EXPECTED.hidden) fail(`expected ${EXPECTED.hidden} hidden trophies, found ${hidden}`);
+  if (counted !== EXPECTED.counted) fail(`expected ${EXPECTED.counted} counted trophies, found ${counted}`);
+  missableNames.sort();
+  const expectedMissable = EXPECTED.missable.slice().sort();
+  if (JSON.stringify(missableNames) !== JSON.stringify(expectedMissable)) {
+    fail(`missable set differs: found ${missableNames.join(' | ')}`);
+  }
+
+  const roadmap = data.roadmap;
+  if (!Array.isArray(roadmap) || roadmap.length !== EXPECTED.roadmapPhases) {
+    fail(`roadmap must hold ${EXPECTED.roadmapPhases} phases`);
+  }
+  const covered = new Set<number>();
+  for (const phase of roadmap) {
+    if (!Array.isArray(phase.trophyIds) || phase.trophyIds.length === 0) fail(`phase ${phase.phase}: no trophies`);
+    for (const id of phase.trophyIds) {
+      if (!ids.has(id)) fail(`phase ${phase.phase}: unknown trophy id ${id}`);
+      if (covered.has(id)) fail(`phase ${phase.phase}: trophy ${id} appears twice in the roadmap`);
+      covered.add(id);
+    }
+  }
+  if (covered.size !== EXPECTED.trophies) fail(`roadmap covers ${covered.size} of ${EXPECTED.trophies} trophies`);
+
+  const sourceKeys = new Set((data.sources ?? []).map((s: { key: string }) => s.key));
+  for (const trophy of trophies) {
+    for (const key of trophy.sources) {
+      if (!sourceKeys.has(key)) fail(`trophy ${trophy.id}: cites unknown source "${key}"`);
+    }
+  }
+}
+
+function copyTree(name: string): void {
+  const from = join(repoRoot, name);
+  const to = join(outputDir, name);
+  if (!existsSync(from)) fail(`repository holds no ${name}/ directory`);
+  rmSync(to, { recursive: true, force: true });
+  cpSync(from, to, { recursive: true });
+}
+
+function main(): void {
+  validateData();
+  mkdirSync(outputDir, { recursive: true });
+  copyTree('app');
+  copyTree('screenshots');
+
+  const dossier = buildDossier(outputDir, {
+    text_max_bytes: TEXT_MAX_BYTES,
+    screenshots: { max: 4, max_bytes: 262_144 },
+    app_max_files: 993,
+    app_max_bytes: 50_331_648,
+    app_path_max_bytes: 1000,
+  });
+  const bytes = Buffer.byteLength(dossier, 'utf8');
+  if (bytes > DOSSIER_MAX_BYTES) fail(`dossier is ${bytes} bytes, over the ${DOSSIER_MAX_BYTES} cap`);
+  writeFileSync(join(outputDir, 'dossier.json'), dossier);
+
+  const appBytes = statSync(join(outputDir, 'app', 'data', 'trophies.json')).size;
+  console.log(`leonida-legend: validated 55 trophies, roadmap complete; dossier ${bytes} bytes (data file ${appBytes} bytes)`);
+}
+
+main();

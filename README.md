@@ -1,25 +1,57 @@
-# Leonida Legend — GTA VI Trophy Guide & Tracker
+# Leonida Legend — a GTA VI trophy guide & tracker
 
-![make.fun bounty](https://make.fun/badge/gta6-trophy-guide-01.svg)
-![rank](https://make.fun/badge/gta6-trophy-guide-01/triyatmojo09-coder/gta6-trophy-guide/rank.svg)
-![reward](https://make.fun/badge/gta6-trophy-guide-01/triyatmojo09-coder/gta6-trophy-guide/reward.svg)
+[![Competition](https://make.fun/badge/gta6-trophy-guide-01.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
+[![Rank](https://make.fun/badge/gta6-trophy-guide-01/triyatmojo09-coder/gta6-trophy-guide/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
+[![Reward](https://make.fun/badge/gta6-trophy-guide-01/triyatmojo09-coder/gta6-trophy-guide/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
 
-An offline guide and tracker for all **55 PlayStation 5 trophies of Grand Theft Auto VI**, built for the [make.fun GTA 6 trophy guide bounty](https://make.fun/bounty/gta6-trophy-guide-01). Open `app/index.html` through any static file server and it runs with the network off — no build step, no accounts, nothing loaded from anywhere else.
+An entry for the make.fun bounty [Build the best GTA 6 trophy guide](https://make.fun/bounty/gta6-trophy-guide-01).
+
+**Leonida Legend** is an offline, single-page guide and tracker for all 55 PlayStation 5 trophies of
+Grand Theft Auto VI. Open `app/index.html` (served by any static file server) and everything works with the
+network off: no accounts, no build step, no external assets — the whole look is CSS and SVG.
 
 ## What it does
 
-- **The full official list** — every trophy with the name, description and grade PlayStation publishes (1 platinum, 2 gold, 6 silver, 46 bronze; 28 hidden), plus its recorded rarity from Exophase's launch recording of the trophy page.
-- **A guide to every trophy, in our own words**, each citing its sources (the official PlayStation list, Exophase, PSNProfiles) — what to do, where the official description puts it, and when it can be missed.
-- **Missable flags with reasons** — four trophies flagged from their own descriptions (a one-time VCIA departure, a scripted partnership moment, an unchangeable choice count, a second-attempt trophy), each with the evidence quoted in its guide.
-- **A six-phase roadmap to the platinum** — story first with the missables watched, stranger strands closed before the endgame, then the collection, activity and crime sweeps, and 100% completion last.
-- **A real tracker** — check off earned trophies, keep counters for the counted trophies (250 stunts, 42 range golds, $250,000 laundered…; reaching a target marks the trophy earned), and watch the platinum progress ring and per-grade counts update. Progress saves in the browser's local storage and can be **exported to a file and imported back**.
-- **Filters and a spoiler shield** — filter by kind (story, missable, collectibles, activities), grade and earned status, search by name or mission, sort by list order, rarity or name. The spoiler shield hides the names and descriptions of hidden trophies until you earn them, exactly as PlayStation does. The official list has no online trophies, so there is deliberately no online filter.
+- **The full official list.** All 55 trophies with their official names, descriptions and grades
+  (1 platinum, 2 gold, 6 silver, 46 bronze), the 28 hidden trophies flagged, and each trophy's recorded
+  rarity with a rarity band. Rarity is labelled in-app as what it is: a launch snapshot recorded by
+  Exophase on 2026-11-19 across 638 tracked players.
+- **An original guide for every trophy** (40–80 words each), written for this app, with the sources it
+  rests on named beside it — the official PlayStation list, Exophase and PSNProfiles, linked in the
+  Sources view.
+- **Missable warnings.** The four trophies that can be lost in a single playthrough — *Catch Me If You
+  Can*, *Personal Best*, *Actions Speak Louder* and *Bad Luck, I Guess* — carry a warning box explaining
+  exactly why (the game has no mission replay), so you meet them before they pass.
+- **A tracker that remembers.** Tick trophies off as you earn them; progress, including the counters
+  below, is saved in your browser's localStorage. Export progress to a JSON file, import it back on
+  another machine, or reset. A progress ring and per-grade counts sit at the top, and every trophy has a
+  deep link (`#trophy-<id>`) you can bookmark or share.
+- **Counters for the 19 counted trophies.** Stunts (250), Shooting Range golds (42), choices (500),
+  laundered Marked Bills ($250,000) and fifteen more get steppers with a progress bar; reaching the
+  target ticks the trophy off automatically.
+- **Filters and a spoiler shield.** Filter by kind (Story / Missable / Collectibles / Activities), grade
+  and earned status, search by name or keyword, and sort by list order, rarity or name. With the spoiler
+  shield on (the default), hidden and story trophies stay veiled — name and description blurred, guide
+  withheld — until you earn them or choose to reveal them.
+- **A six-phase platinum roadmap.** From *Touchdown in Leonida* through *The Long Road*, the roadmap
+  orders all 55 trophies exactly once, shows per-phase progress, flags the missables in place, and every
+  chip deep-links into that trophy's guide.
 
 ## Layout
 
-- `app/` — the guide itself: `index.html`, `style.css`, `app.js`, and `data/trophies.json` (the trophies, their guides, the roadmap and the source legend).
-- `screenshots/` — four real renders of the app: the tracker, an open missable guide, the roadmap, and the missable filter with the spoiler shield on.
-- `main.ts` — the entry program: it validates the trophy data (55 trophies, every guide present, roadmap complete), copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored library in `vendor/makefun-frontend.ts`, which is the kit's file, unchanged.
-- `serve.ts` — a tiny local server for trying the guide: `node serve.ts`, then open http://localhost:8080.
+- `app/` — the guide itself: `index.html`, `style.css`, `app.js`, and `data/trophies.json` (the trophy
+  data, including guides, roadmap and sources).
+- `screenshots/` — four captures of the running app, described by `shots.json` and produced by
+  `capture-screenshots.mjs` (`node capture-screenshots.mjs`, `--verify` for a console-error and
+  counter check).
+- `main.ts` — the hand-in program: it validates the trophy data (55 trophies, guide lengths, roadmap
+  completeness), copies `app/` and `screenshots/` to the output directory and writes `dossier.json`
+  with `vendor/makefun-frontend.ts`. Run it with `MAKEFUN_OUTPUT_DIR=out node main.ts`.
+- `serve.ts` — the kit's static server for trying the app locally at http://localhost:8080.
+- `vendor/makefun-frontend.ts` — make.fun's dossier library, byte-identical to the kit's copy.
 
-Leonida Legend is an unofficial fan work: it uses no Rockstar Games logo, artwork or screenshots, and its look is its own.
+## Notes
+
+Leonida Legend is a fan-made guide, not affiliated with Rockstar Games or Take-Two Interactive. It uses
+no official artwork or logos; trophy names and descriptions are quoted from the official PlayStation
+list, and all guide text is original.

@@ -1,124 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Leonida Legend — GTA VI Trophy Guide &amp; Tracker</title>
-<meta name="description" content="An offline guide and tracker for all 55 Grand Theft Auto VI PlayStation 5 trophies: the official list, a platinum roadmap, missable flags and a sourced guide to every trophy.">
+<meta name="description" content="Offline guide and tracker for all 55 Grand Theft Auto VI PlayStation 5 trophies: cited guides, a six-phase platinum roadmap, missable warnings, counters and a spoiler shield.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%231b1433'/%3E%3Cpath d='M16 5l3.4 8.3L28 14.8l-6.3 5.4L23.4 29 16 24.6 8.6 29l1.7-8.8L4 14.8l8.6-1.5z' fill='%23ffd35c'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header id="masthead">
-  <div class="masthead-inner">
-    <div class="brand">
-      <p class="brand-kicker">Grand Theft Auto VI · PlayStation 5 · Unofficial fan guide</p>
-      <h1>Leonida Legend</h1>
-      <p class="brand-sub">The complete trophy guide &amp; tracker — all 55 trophies, a six-phase roadmap to the platinum, every missable flagged, and a guide to each trophy that cites its sources.</p>
-    </div>
-    <div class="progress-panel" aria-label="Your progress">
-      <svg id="progressRing" viewBox="0 0 120 120" role="img" aria-label="Platinum progress ring">
+<div class="skyline" aria-hidden="true"></div>
+
+<header class="masthead">
+  <div class="masthead-text">
+    <p class="kicker">Grand Theft Auto VI · PlayStation 5 · Offline guide &amp; tracker</p>
+    <h1>Leonida <span class="neon">Legend</span></h1>
+    <p class="tagline">Every one of the 55 trophies — official names, descriptions and grades, a cited guide for each,
+    a six-phase road to the platinum, and a tracker that remembers where you left off.</p>
+    <p class="snapshot-note" id="snapshot-note">Rarity shown is a launch snapshot and will drift over time.</p>
+  </div>
+  <div class="progress-panel" aria-label="Platinum progress">
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="Percent of trophies earned">
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
-        <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
-        <text class="ring-pct" id="ringPct" x="60" y="58">0%</text>
-        <text class="ring-label" x="60" y="76">to platinum</text>
+        <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52"></circle>
       </svg>
-      <div class="progress-numbers">
-        <p class="progress-count"><strong id="earnedCount">0</strong> of 55 earned</p>
-        <p class="grade-counts" id="gradeCounts"></p>
-        <p class="progress-hint" id="nextUp"></p>
+      <div class="ring-center">
+        <span class="ring-pct" id="ring-pct">0%</span>
+        <span class="ring-count" id="ring-count">0 / 55</span>
       </div>
     </div>
+    <ul class="grade-counts" id="grade-counts">
+      <li><span class="dot dot-platinum"></span>Platinum <strong id="count-platinum">0 / 1</strong></li>
+      <li><span class="dot dot-gold"></span>Gold <strong id="count-gold">0 / 2</strong></li>
+      <li><span class="dot dot-silver"></span>Silver <strong id="count-silver">0 / 6</strong></li>
+      <li><span class="dot dot-bronze"></span>Bronze <strong id="count-bronze">0 / 46</strong></li>
+    </ul>
+    <div class="progress-actions">
+      <button type="button" id="btn-export">Export progress</button>
+      <button type="button" id="btn-import">Import progress</button>
+      <button type="button" id="btn-reset" class="danger">Reset</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </div>
+    <p class="save-note" id="save-note">Progress saves in this browser (localStorage).</p>
   </div>
-  <nav id="viewTabs" aria-label="Guide sections">
-    <button type="button" class="tab is-active" data-view="tracker">Trophy tracker</button>
-    <button type="button" class="tab" data-view="roadmap">Roadmap to the platinum</button>
-    <button type="button" class="tab" data-view="sources">Sources &amp; method</button>
-  </nav>
 </header>
 
+<nav class="view-tabs" aria-label="Views">
+  <button type="button" class="tab is-active" data-view="tracker">Trophy tracker</button>
+  <button type="button" class="tab" data-view="roadmap">Platinum roadmap</button>
+  <button type="button" class="tab" data-view="sources">Sources</button>
+</nav>
+
 <main>
-  <section id="view-tracker" class="view is-active">
-    <div class="toolbar" id="toolbar">
-      <div class="toolbar-row">
-        <label class="search-box">Search
-          <input id="search" type="search" placeholder="Trophy, mission, character…" autocomplete="off">
-        </label>
-        <label>Grade
-          <select id="gradeFilter">
-            <option value="all">All grades</option>
-            <option value="platinum">Platinum</option>
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-            <option value="bronze">Bronze</option>
-          </select>
-        </label>
-        <label>Status
-          <select id="statusFilter">
-            <option value="all">All trophies</option>
-            <option value="earned">Earned</option>
-            <option value="unearned">Not earned</option>
-          </select>
-        </label>
-        <label>Sort
-          <select id="sortOrder">
-            <option value="official">Official list order</option>
-            <option value="rarity">Rarest first (Exophase launch)</option>
-            <option value="name">Name A–Z</option>
-          </select>
-        </label>
+  <section id="view-tracker" class="view">
+    <div class="toolbar" role="search">
+      <label class="search-box">
+        <span class="visually-hidden">Search trophies</span>
+        <input type="search" id="search" placeholder="Search a trophy, a mission, a place…" autocomplete="off">
+      </label>
+      <div class="chips" id="kind-chips" role="group" aria-label="Filter by kind">
+        <button type="button" class="chip is-active" data-kind="all">All kinds</button>
+        <button type="button" class="chip" data-kind="story">Story</button>
+        <button type="button" class="chip" data-kind="missable">Missable</button>
+        <button type="button" class="chip" data-kind="collectibles">Collectibles</button>
+        <button type="button" class="chip" data-kind="activities">Activities</button>
       </div>
-      <div class="toolbar-row">
-        <div class="chip-group" id="kindFilters" role="group" aria-label="Filter by kind">
-          <button type="button" class="chip is-active" data-kind="all">All kinds</button>
-          <button type="button" class="chip" data-kind="story">Story</button>
-          <button type="button" class="chip chip-missable" data-kind="missable">Missable</button>
-          <button type="button" class="chip" data-kind="collectibles">Collectibles</button>
-          <button type="button" class="chip" data-kind="activities">Activities</button>
-        </div>
-        <label class="switch" title="Hide the names and descriptions of hidden story trophies until you earn them">
-          <input id="spoilerToggle" type="checkbox">
-          <span>Spoiler shield</span>
-        </label>
-        <div class="toolbar-actions">
-          <button type="button" id="exportBtn">Export progress</button>
-          <label class="import-label">Import progress <input id="importFile" type="file" accept="application/json"></label>
-          <button type="button" id="resetBtn">Reset</button>
-        </div>
-      </div>
-      <p class="result-line" id="resultLine" aria-live="polite"></p>
+      <label>Grade
+        <select id="filter-grade">
+          <option value="all">All grades</option>
+          <option value="platinum">Platinum</option>
+          <option value="gold">Gold</option>
+          <option value="silver">Silver</option>
+          <option value="bronze">Bronze</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="filter-status">
+          <option value="all">All</option>
+          <option value="earned">Earned</option>
+          <option value="unearned">Not yet</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="sort-by">
+          <option value="list">List order</option>
+          <option value="rarity-desc">Rarity, common first</option>
+          <option value="rarity-asc">Rarity, rarest first</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </label>
+      <label class="shield-toggle">
+        <input type="checkbox" id="shield" checked>
+        Spoiler shield
+      </label>
     </div>
-
-    <div class="tracker-layout">
-      <div id="trophyGrid" class="trophy-grid"></div>
-      <aside id="detailPanel" class="detail-panel" aria-label="Trophy guide">
-        <div class="detail-empty" id="detailEmpty">
-          <h2>Pick a trophy</h2>
-          <p>Select any trophy to read its full guide: what to do, when it can be missed, and the sources the guide is built from. Your progress is saved in this browser automatically.</p>
-          <p>The official list has no online trophies — every one of the 55 is earned in the single-player game, so this tracker needs no online filter.</p>
-        </div>
-        <article id="detailBody" class="detail-body" hidden></article>
-      </aside>
-    </div>
+    <p class="result-line" id="result-line" aria-live="polite"></p>
+    <div class="grid" id="trophy-grid"></div>
+    <p class="empty" id="empty-state" hidden>No trophy matches those filters. Loosen the search or clear a filter to see the full list again.</p>
   </section>
 
-  <section id="view-roadmap" class="view">
+  <section id="view-roadmap" class="view" hidden>
     <div class="roadmap-intro">
-      <h2>Roadmap to the platinum</h2>
-      <p>Six phases, built from the official descriptions: story first with the missables watched, strands closed before the endgame, then the collection, activity and crime sweeps, and 100% last. Nothing outside Phase 1 is missable — every other trophy can be earned in post-story free roam, so the only real deadline is your own patience.</p>
+      <h2>The road to Vice Got a Price!</h2>
+      <p>Six phases, in the order a first playthrough should meet them. The story comes first — the game has no mission
+      replay, and four trophies can be lost on the way — then the long free-roam sweep, then the 100 percent checklist
+      that feeds the platinum. Every trophy appears in exactly one phase; tap any chip to jump to its guide.</p>
     </div>
-    <div id="roadmapList"></div>
+    <div id="roadmap-list"></div>
   </section>
 
-  <section id="view-sources" class="view">
-    <h2>Sources &amp; method</h2>
-    <div id="sourcesBody"></div>
+  <section id="view-sources" class="view" hidden>
+    <h2>Sources</h2>
+    <p>Every guide in this app is written for this app, in our own words. The facts underneath them — the official
+    names, descriptions and grades, the tracked counts, the rarity figures — come from the sources below, and each
+    trophy's guide names the sources it rests on. Links open only when you follow them; the app itself loads nothing
+    from the network.</p>
+    <div id="source-list"></div>
+    <h3>About the rarity figures</h3>
+    <p id="rarity-about">Rarity is the percent of tracked players who had earned a trophy when the snapshot was read.</p>
+    <ul class="band-key" id="band-key"></ul>
   </section>
 </main>
 
 <footer>
-  <p>Leonida Legend is an unofficial fan work. It uses no Rockstar Games logo, artwork or screenshots; the look is its own. Trophy names and descriptions are shown as PlayStation publishes them. Progress lives only in your browser's local storage — export it before you clear your browser data.</p>
+  <p>Leonida Legend is a fan-made guide. It is not affiliated with Rockstar Games or Take-Two Interactive, and it
+  shows no official artwork — every visual here is drawn with CSS and SVG. Trophy names and descriptions are quoted
+  from the official PlayStation list; guides are original text.</p>
 </footer>
 
-<script type="module" src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>
