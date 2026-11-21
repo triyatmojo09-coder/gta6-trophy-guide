@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leonida Legend — GTA VI Trophy Guide &amp; Tracker</title>
+<meta name="description" content="An offline guide and tracker for all 55 Grand Theft Auto VI PlayStation 5 trophies: the official list, a platinum roadmap, missable flags and a sourced guide to every trophy.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <p class="brand-kicker">Grand Theft Auto VI · PlayStation 5 · Unofficial fan guide</p>
+      <h1>Leonida Legend</h1>
+      <p class="brand-sub">The complete trophy guide &amp; tracker — all 55 trophies, a six-phase roadmap to the platinum, every missable flagged, and a guide to each trophy that cites its sources.</p>
+    </div>
+    <div class="progress-panel" aria-label="Your progress">
+      <svg id="progressRing" viewBox="0 0 120 120" role="img" aria-label="Platinum progress ring">
+        <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+        <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"></circle>
+        <text class="ring-pct" id="ringPct" x="60" y="58">0%</text>
+        <text class="ring-label" x="60" y="76">to platinum</text>
+      </svg>
+      <div class="progress-numbers">
+        <p class="progress-count"><strong id="earnedCount">0</strong> of 55 earned</p>
+        <p class="grade-counts" id="gradeCounts"></p>
+        <p class="progress-hint" id="nextUp"></p>
+      </div>
+    </div>
+  </div>
+  <nav id="viewTabs" aria-label="Guide sections">
+    <button type="button" class="tab is-active" data-view="tracker">Trophy tracker</button>
+    <button type="button" class="tab" data-view="roadmap">Roadmap to the platinum</button>
+    <button type="button" class="tab" data-view="sources">Sources &amp; method</button>
+  </nav>
+</header>
+
+<main>
+  <section id="view-tracker" class="view is-active">
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar-row">
+        <label class="search-box">Search
+          <input id="search" type="search" placeholder="Trophy, mission, character…" autocomplete="off">
+        </label>
+        <label>Grade
+          <select id="gradeFilter">
+            <option value="all">All grades</option>
+            <option value="platinum">Platinum</option>
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+            <option value="bronze">Bronze</option>
+          </select>
+        </label>
+        <label>Status
+          <select id="statusFilter">
+            <option value="all">All trophies</option>
+            <option value="earned">Earned</option>
+            <option value="unearned">Not earned</option>
+          </select>
+        </label>
+        <label>Sort
+          <select id="sortOrder">
+            <option value="official">Official list order</option>
+            <option value="rarity">Rarest first (Exophase launch)</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </label>
+      </div>
+      <div class="toolbar-row">
+        <div class="chip-group" id="kindFilters" role="group" aria-label="Filter by kind">
+          <button type="button" class="chip is-active" data-kind="all">All kinds</button>
+          <button type="button" class="chip" data-kind="story">Story</button>
+          <button type="button" class="chip chip-missable" data-kind="missable">Missable</button>
+          <button type="button" class="chip" data-kind="collectibles">Collectibles</button>
+          <button type="button" class="chip" data-kind="activities">Activities</button>
+        </div>
+        <label class="switch" title="Hide the names and descriptions of hidden story trophies until you earn them">
+          <input id="spoilerToggle" type="checkbox">
+          <span>Spoiler shield</span>
+        </label>
+        <div class="toolbar-actions">
+          <button type="button" id="exportBtn">Export progress</button>
+          <label class="import-label">Import progress <input id="importFile" type="file" accept="application/json"></label>
+          <button type="button" id="resetBtn">Reset</button>
+        </div>
+      </div>
+      <p class="result-line" id="resultLine" aria-live="polite"></p>
+    </div>
+
+    <div class="tracker-layout">
+      <div id="trophyGrid" class="trophy-grid"></div>
+      <aside id="detailPanel" class="detail-panel" aria-label="Trophy guide">
+        <div class="detail-empty" id="detailEmpty">
+          <h2>Pick a trophy</h2>
+          <p>Select any trophy to read its full guide: what to do, when it can be missed, and the sources the guide is built from. Your progress is saved in this browser automatically.</p>
+          <p>The official list has no online trophies — every one of the 55 is earned in the single-player game, so this tracker needs no online filter.</p>
+        </div>
+        <article id="detailBody" class="detail-body" hidden></article>
+      </aside>
+    </div>
+  </section>
+
+  <section id="view-roadmap" class="view">
+    <div class="roadmap-intro">
+      <h2>Roadmap to the platinum</h2>
+      <p>Six phases, built from the official descriptions: story first with the missables watched, strands closed before the endgame, then the collection, activity and crime sweeps, and 100% last. Nothing outside Phase 1 is missable — every other trophy can be earned in post-story free roam, so the only real deadline is your own patience.</p>
+    </div>
+    <div id="roadmapList"></div>
+  </section>
+
+  <section id="view-sources" class="view">
+    <h2>Sources &amp; method</h2>
+    <div id="sourcesBody"></div>
+  </section>
+</main>
+
+<footer>
+  <p>Leonida Legend is an unofficial fan work. It uses no Rockstar Games logo, artwork or screenshots; the look is its own. Trophy names and descriptions are shown as PlayStation publishes them. Progress lives only in your browser's local storage — export it before you clear your browser data.</p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
